@@ -147,13 +147,17 @@ async function renderVideo(plan, uploadedFiles, jobId) {
     inputProps: props,
   });
 
+  const chromePath = process.env.REMOTION_CHROME_EXECUTABLE || undefined;
+
   await renderMedia({
     composition: { ...composition, durationInFrames, width: 1080, height: 1920 },
     serveUrl: bundleLocation,
     codec: 'h264',
     outputLocation: outputPath,
     inputProps: props,
-    chromiumOptions: { disableWebSecurity: true },
+    browserExecutable: chromePath,
+    chromiumOptions: { disableWebSecurity: true, gl: 'swiftshader' },
+    concurrency: 1,
   });
 
   return outputPath;
