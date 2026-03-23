@@ -1,6 +1,5 @@
 import {
   AbsoluteFill,
-  Audio,
   Sequence,
   Video,
   Img,
@@ -9,7 +8,6 @@ import {
   interpolate,
   Easing,
   spring,
-  staticFile,
 } from 'remotion';
 
 // ── TEXT OVERLAY ──
@@ -186,13 +184,8 @@ export const VideoComposition = ({
     return { clip, startFrame, durationFrames };
   });
 
-  // Music tracks — using static files
-  const musicMap = {
-    dark: staticFile('music/dark_cinematic.mp3'),
-    hard: staticFile('music/hard_beat.mp3'),
-    luxury: staticFile('music/dark_luxury.mp3'),
-  };
-  const musicSrc = musicMap[musicTrack] || musicMap.dark;
+  // Music handled in TikTok after export
+  const musicSrc = null;
 
   return (
     <AbsoluteFill style={{ backgroundColor: bgColor, fontFamily: 'Bebas Neue, sans-serif' }}>
@@ -237,14 +230,7 @@ export const VideoComposition = ({
       <AccentLine />
       <Watermark />
 
-      {/* Music */}
-      {musicSrc && (
-        <Audio
-          src={musicSrc}
-          startFrom={Math.round(musicStartTime * fps)}
-          volume={0.85}
-        />
-      )}
+      {/* Music: add in TikTok using recommended song */}
 
     </AbsoluteFill>
   );
