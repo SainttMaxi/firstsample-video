@@ -123,8 +123,8 @@ select option{background:var(--dark2)}
       <!-- Shotstack Key -->
       <div>
         <div class="mono-label">Shotstack API Key</div>
-        <input type="password" id="shotstack-key" placeholder="Sandbox key from shotstack.io" autocomplete="off">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:.1em;">FREE SANDBOX AT SHOTSTACK.IO</div>
+        <input type="password" id="creatomate-key" placeholder="API key from creatomate.com" autocomplete="off">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:.1em;">FREE AT CREATOMATE.COM</div>
       </div>
 
       <!-- Prompt -->
@@ -279,9 +279,9 @@ async function generate() {
   const apiKey = document.getElementById('api-key').value.trim();
   const prompt = document.getElementById('prompt').value.trim();
 
-  const shotstackKey = document.getElementById('shotstack-key').value.trim();
+  const shotstackKey = document.getElementById('creatomate-key').value.trim();
   if (!apiKey) { showError('Enter your Groq API key.'); return; }
-  if (!shotstackKey) { showError('Enter your Shotstack API key.'); return; }
+  if (!creatomateKey) { showError('Enter your Creatomate API key.'); return; }
   if (!prompt) { showError('Describe what the video should be about.'); return; }
 
   document.getElementById('error-msg').classList.remove('visible');
@@ -297,7 +297,7 @@ async function generate() {
   formData.append('length', document.getElementById('length').value);
   formData.append('music', document.getElementById('music').value);
   formData.append('groqKey', apiKey);
-  formData.append('shotstackKey', document.getElementById('shotstack-key').value.trim());
+  formData.append('creatomateKey', document.getElementById('creatomate-key').value.trim());
   uploadedFiles.forEach(f => formData.append('files', f));
 
   try {
