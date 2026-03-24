@@ -99,13 +99,16 @@ Rules: Text max 3 words ALL CAPS. Song must be real TikTok-available track. Beat
 // ── REMOTION RENDER ──
 async function renderVideo(plan, uploadedFiles, jobId) {
   // Map uploaded files to clips
+  // Use PUBLIC_URL env var for Railway, fallback to localhost
+  const baseUrl = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
+
   const clips = plan.clips.map((clip, i) => {
     const matchedFile = uploadedFiles.find(f =>
       clip.fileName && f.originalname.toLowerCase().includes(clip.fileName.toLowerCase().replace(/\.[^.]+$/, ''))
-    ) || uploadedFiles[i % uploadedFiles.length];
+    ) || (uploadedFiles.length > 0 ? uploadedFiles[i % uploadedFiles.length] : null);
 
     const src = matchedFile
-      ? `http://localhost:${PORT}/uploads/${matchedFile.filename}`
+      ? `${baseUrl}/uploads/${matchedFile.filename}`
       : null;
 
     const isVideo = matchedFile && /\.(mp4|mov|webm|avi)$/i.test(matchedFile.originalname);
