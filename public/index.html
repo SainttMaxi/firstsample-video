@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>First Sample — Video Creator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#050507;--dark:#0a0b0f;--dark2:#111318;--dark3:#181b23;
+  --blue:#2d5fff;--blue2:#4d7bff;
+  --glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#f0f2f8;--muted:rgba(255,255,255,0.32);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100vh;background:var(--black);color:var(--text);font-family:'Syne',sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;mix-blend-mode:overlay}
+body::after{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:900px;height:700px;background:radial-gradient(ellipse,rgba(45,95,255,0.07) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+nav{position:fixed;top:0;left:0;right:0;height:58px;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(5,5,7,0.9);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.05em}
+.nav-logo span{color:var(--blue2)}
+.nav-sub{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+
+.app{max-width:800px;margin:0 auto;padding:88px 24px 60px;position:relative;z-index:1;display:flex;flex-direction:column;gap:20px}
+
+.panel{background:var(--dark);border:1px solid var(--border);border-radius:18px;overflow:hidden;position:relative}
+.panel::after{content:'';position:absolute;inset:0;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,transparent 50%,rgba(255,255,255,0.02) 100%);pointer-events:none}
+.panel-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:12px;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
+.panel-title .dot{width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 6px rgba(45,95,255,0.9)}
+.panel-body{padding:24px;display:flex;flex-direction:column;gap:16px}
+
+.mono-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue2);display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.mono-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(77,123,255,0.35),transparent)}
+
+textarea,input[type=text],input[type=password],select{width:100%;background:rgba(255,255,255,0.03);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;transition:border-color .2s;appearance:none}
+textarea:focus,input:focus,select:focus{border-color:rgba(77,123,255,.5)}
+textarea{min-height:90px;resize:none;line-height:1.6}
+select option{background:var(--dark2)}
+
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.setting-item{display:flex;flex-direction:column;gap:6px}
+.setting-item label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+
+.upload-zone{border:1.5px dashed rgba(77,123,255,.3);border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;background:rgba(45,95,255,.03);transition:all .2s}
+.upload-zone:hover,.upload-zone.drag-over{border-color:rgba(77,123,255,.6);background:rgba(45,95,255,.06)}
+.upload-zone input{display:none}
+.upload-zone h3{font-size:13px;font-weight:600;margin-bottom:4px}
+.upload-zone p{font-size:11px;color:var(--muted)}
+
+.file-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.file-chip{display:inline-flex;align-items:center;gap:6px;background:var(--glass);border:1px solid var(--border);border-radius:99px;padding:4px 10px 4px 8px;font-size:11px}
+.file-chip button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:10px;padding:0}
+.file-chip button:hover{color:#ef4444}
+
+.btn-generate{width:100%;padding:16px;background:linear-gradient(135deg,#2d5fff,#4d7bff);border:none;border-radius:12px;color:#fff;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:.03em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 0 32px rgba(45,95,255,.35);transition:all .2s}
+.btn-generate:hover{transform:translateY(-2px);box-shadow:0 4px 40px rgba(45,95,255,.5)}
+.btn-generate:disabled{opacity:.5;cursor:default;transform:none}
+
+.status-card{display:none;background:rgba(45,95,255,.06);border:1px solid rgba(77,123,255,.2);border-radius:12px;padding:20px 24px;align-items:center;gap:16px}
+.status-card.visible{display:flex}
+.spinner{width:20px;height:20px;border:2px solid rgba(77,123,255,.3);border-top-color:var(--blue2);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-text{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.6)}
+.status-step{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+
+.result-section{display:none;flex-direction:column;gap:16px}
+.result-section.visible{display:flex}
+
+.video-preview{width:100%;border-radius:14px;background:#000;display:block}
+.download-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:12px;cursor:pointer;color:#4ade80;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;text-decoration:none;transition:all .2s}
+.download-btn:hover{background:rgba(74,222,128,.2);transform:translateY(-1px)}
+
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.plan-card{background:var(--glass);border:1px solid var(--border);border-radius:10px;padding:14px}
+.plan-card-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue2);margin-bottom:6px}
+.plan-card-val{font-size:12px;line-height:1.5}
+
+.song-card{background:rgba(45,95,255,.08);border:1px solid rgba(77,123,255,.2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.song-icon{font-size:24px}
+.song-name{font-size:14px;font-weight:700}
+.song-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px}
+.song-timing{margin-left:auto;text-align:right}
+.song-timing-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--blue2)}
+.song-timing-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)}
+
+.tiktok-note{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:11px;color:var(--muted);line-height:1.7}
+.tiktok-note strong{color:var(--text)}
+
+.error-msg{display:none;padding:12px 16px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:9px;font-size:12px;color:#ef4444}
+.error-msg.visible{display:block}
+
+.quick-prompts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.qp{background:var(--glass);border:1px solid var(--border);border-radius:99px;padding:5px 14px;font-size:11px;color:rgba(255,255,255,.55);cursor:pointer;transition:all .15s}
+.qp:hover{background:var(--glass2);border-color:var(--border2);color:var(--text)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">FIRST<span>SAMPLE</span></div>
+  <div class="nav-sub">AI Video Creator</div>
+  <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">Powered by Remotion</div>
+</nav>
+
+<div class="app">
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title"><div class="dot"></div>Create Your Video</div>
+    </div>
+    <div class="panel-body">
+
+      <!-- API Key -->
+      <div>
+        <div class="mono-label">Groq API Key</div>
+        <input type="password" id="api-key" placeholder="gsk_..." autocomplete="off">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:.1em;">FREE AT CONSOLE.GROQ.COM</div>
+      </div>
+
+      <!-- Shotstack Key -->
+      <div>
+        <div class="mono-label">Shotstack API Key</div>
+        <input type="password" id="creatomate-key" placeholder="API key from creatomate.com" autocomplete="off">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:.1em;">FREE AT CREATOMATE.COM</div>
+      </div>
+
+      <!-- Prompt -->
+      <div>
+        <div class="mono-label">What should this video be about?</div>
+        <textarea id="prompt" placeholder="Ex: A cinematic Paris video for First Sample — streets, Eiffel Tower at night, Seine river. Hard and cinematic like Travis Scott Utopia."></textarea>
+        <div class="quick-prompts">
+          <div class="qp" onclick="setPrompt('paris streets cinematic first sample brand video')">Paris cinematic</div>
+          <div class="qp" onclick="setPrompt('why first sample costs $20 — hard streetwear vibe')">Why $20</div>
+          <div class="qp" onclick="setPrompt('what is a tech pack and why every streetwear brand needs one')">Tech pack</div>
+          <div class="qp" onclick="setPrompt('the biggest mistake new streetwear brands make — dark luxury')">Biggest mistake</div>
+          <div class="qp" onclick="setPrompt('from idea to first sample — the full streetwear journey')">The journey</div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="settings-grid">
+        <div class="setting-item">
+          <label>Vibe</label>
+          <select id="vibe">
+            <option value="hard cinematic">Hard cinematic</option>
+            <option value="dark luxury">Dark luxury</option>
+            <option value="raw streetwear">Raw streetwear</option>
+            <option value="minimal clean">Minimal clean</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label>Format</label>
+          <select id="format">
+            <option value="9:16">9:16 — TikTok / Reels</option>
+            <option value="1:1">1:1 — Square</option>
+            <option value="16:9">16:9 — YouTube</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label>Length</label>
+          <select id="length">
+            <option value="short">Short — 10-15s</option>
+            <option value="medium" selected>Medium — 15-25s</option>
+            <option value="long">Long — 25-40s</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label>Music</label>
+          <select id="music">
+            <option value="dark">Dark cinematic (built-in)</option>
+            <option value="hard">Hard beat (built-in)</option>
+            <option value="luxury">Dark luxury (built-in)</option>
+            <option value="none">No music — add in TikTok</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Upload -->
+      <div>
+        <div class="mono-label">Your clips & photos</div>
+        <div class="upload-zone" id="upload-zone"
+          onclick="document.getElementById('file-input').click()"
+          ondragover="e=>{e.preventDefault();document.getElementById('upload-zone').classList.add('drag-over')}"
+          ondrop="handleDrop(event)"
+          ondragleave="document.getElementById('upload-zone').classList.remove('drag-over')">
+          <input type="file" id="file-input" multiple accept="video/*,image/*" onchange="handleFiles(this.files)">
+          <h3>Drop your Paris clips here</h3>
+          <p>Videos & images · AI will pick the best order and timing</p>
+        </div>
+        <div class="file-chips" id="file-chips"></div>
+      </div>
+
+      <div class="error-msg" id="error-msg"></div>
+
+      <button class="btn-generate" id="gen-btn" onclick="generate()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Generate Video with AI
+      </button>
+
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-card" id="status-card">
+    <div class="spinner"></div>
+    <div>
+      <div class="status-step" id="status-step">Generating AI plan...</div>
+      <div class="status-text" id="status-text">This takes 2-4 minutes · Do not close the page</div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-section" id="result-section">
+
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title"><div class="dot"></div>Your Video</div></div>
+      <div class="panel-body">
+        <video id="video-preview" class="video-preview" controls></video>
+        <a id="download-btn" class="download-btn" download>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download MP4
+        </a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title"><div class="dot"></div>Video Plan</div></div>
+      <div class="panel-body">
+        <div class="song-card" id="song-card"></div>
+        <div class="plan-grid" id="plan-grid"></div>
+        <div class="tiktok-note">
+          <strong>Add music in TikTok:</strong> When uploading, tap "Add sound" and search for <strong id="song-search"></strong>. Skip to <strong id="song-time"></strong> seconds into the track for the best energy match.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+let uploadedFiles = [];
+let currentJobId = null;
+let pollInterval = null;
+
+function setPrompt(text) { document.getElementById('prompt').value = text; }
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+}
+
+function handleFiles(files) {
+  Array.from(files).forEach(f => {
+    if (!f.type.startsWith('video/') && !f.type.startsWith('image/')) return;
+    uploadedFiles.push(f);
+  });
+  renderChips();
+}
+
+function renderChips() {
+  const c = document.getElementById('file-chips');
+  c.innerHTML = '';
+  uploadedFiles.forEach((f, i) => {
+    const el = document.createElement('div');
+    el.className = 'file-chip';
+    el.innerHTML = `<span>${f.type.startsWith('video/') ? '🎬' : '🖼'} ${f.name}</span><button onclick="removeFile(${i})">✕</button>`;
+    c.appendChild(el);
+  });
+}
+
+function removeFile(i) { uploadedFiles.splice(i, 1); renderChips(); }
+
+async function generate() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  const prompt = document.getElementById('prompt').value.trim();
+
+  const shotstackKey = document.getElementById('creatomate-key').value.trim();
+  if (!apiKey) { showError('Enter your Groq API key.'); return; }
+  if (!creatomateKey) { showError('Enter your Creatomate API key.'); return; }
+  if (!prompt) { showError('Describe what the video should be about.'); return; }
+
+  document.getElementById('error-msg').classList.remove('visible');
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('result-section').classList.remove('visible');
+  document.getElementById('status-card').classList.add('visible');
+  document.getElementById('status-step').textContent = 'Generating AI plan...';
+
+  const formData = new FormData();
+  formData.append('prompt', prompt);
+  formData.append('vibe', document.getElementById('vibe').value);
+  formData.append('format', document.getElementById('format').value);
+  formData.append('length', document.getElementById('length').value);
+  formData.append('music', document.getElementById('music').value);
+  formData.append('groqKey', apiKey);
+  formData.append('creatomateKey', document.getElementById('creatomate-key').value.trim());
+  uploadedFiles.forEach(f => formData.append('files', f));
+
+  try {
+    const res = await fetch('/api/generate', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (data.error) { showError(data.error); return; }
+
+    currentJobId = data.jobId;
+    pollStatus();
+
+  } catch (err) {
+    showError('Connection error: ' + err.message);
+  }
+}
+
+function pollStatus() {
+  let dots = 0;
+  const steps = ['Generating AI plan...', 'Planning clips & timing...', 'Rendering video...', 'Applying text overlays...', 'Finalising...'];
+  let stepIdx = 0;
+
+  pollInterval = setInterval(async () => {
+    dots = (dots + 1) % 4;
+    stepIdx = Math.min(stepIdx + 1, steps.length - 1);
+    document.getElementById('status-step').textContent = steps[Math.floor(stepIdx / 2)];
+    document.getElementById('status-text').textContent = 'Rendering' + '.'.repeat(dots + 1) + ' Do not close this page';
+
+    try {
+      const res = await fetch(`/api/status/${currentJobId}`);
+      const data = await res.json();
+
+      if (data.status === 'done') {
+        clearInterval(pollInterval);
+        showResult(data);
+      } else if (data.status === 'error') {
+        clearInterval(pollInterval);
+        showError(data.message);
+      }
+    } catch (e) {
+      console.error('Poll error:', e);
+    }
+  }, 3000);
+}
+
+function showResult(data) {
+  document.getElementById('status-card').classList.remove('visible');
+  document.getElementById('gen-btn').disabled = false;
+
+  const video = document.getElementById('video-preview');
+  video.src = data.videoUrl;
+
+  const dlBtn = document.getElementById('download-btn');
+  dlBtn.href = data.videoUrl;
+  dlBtn.download = (data.plan?.projectName || 'firstsample_video') + '.mp4';
+
+  if (data.plan) {
+    const song = data.plan.song || {};
+    document.getElementById('song-card').innerHTML = `
+      <div class="song-icon">🎵</div>
+      <div>
+        <div class="song-name">${song.title || '—'} — ${song.artist || ''}</div>
+        <div class="song-meta">${song.bpm || '?'} BPM · ${song.reason || ''}</div>
+      </div>
+      <div class="song-timing">
+        <div class="song-timing-val">${song.startTime || 0}s</div>
+        <div class="song-timing-label">Start at</div>
+      </div>
+    `;
+    document.getElementById('song-search').textContent = `"${song.tiktokSearch || song.title + ' ' + song.artist}"`;
+    document.getElementById('song-time').textContent = song.startTime || 0;
+
+    document.getElementById('plan-grid').innerHTML = `
+      <div class="plan-card"><div class="plan-card-label">Total duration</div><div class="plan-card-val">${data.plan.totalDuration}s</div></div>
+      <div class="plan-card"><div class="plan-card-label">Clips</div><div class="plan-card-val">${data.plan.clips?.length || 0} clips</div></div>
+      <div class="plan-card" style="grid-column:1/-1"><div class="plan-card-label">Caption</div><div class="plan-card-val" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blue2)">${data.plan.caption || ''}</div></div>
+    `;
+  }
+
+  document.getElementById('result-section').classList.add('visible');
+  document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showError(msg) {
+  document.getElementById('status-card').classList.remove('visible');
+  document.getElementById('gen-btn').disabled = false;
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+</script>
+</body>
+</html>
