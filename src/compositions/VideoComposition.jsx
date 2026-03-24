@@ -120,13 +120,29 @@ const AccentLine = () => (
 );
 
 // ── CLIP COMPONENT ──
-const ClipSegment = ({ clip, startFrame, durationFrames, transition }) => {
+const ClipSegment = ({ clip, startFrame, durationFrames }) => {
   const frame = useCurrentFrame();
   const localFrame = frame - startFrame;
 
-  // Ken Burns zoom effect on images
+  // If no src, show black with description text
+  if (!clip.src) {
+    return (
+      <Sequence from={startFrame} durationInFrames={durationFrames}>
+        <AbsoluteFill style={{ backgroundColor: '#0a0b0f', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{
+            fontFamily: 'sans-serif', fontSize: 24, color: 'rgba(255,255,255,0.2)',
+            textAlign: 'center', padding: 40, lineHeight: 1.4,
+          }}>
+            {clip.description || 'Clip'}
+          </div>
+        </AbsoluteFill>
+      </Sequence>
+    );
+  }
+
+  // Ken Burns for images
   const scale = clip.type === 'image'
-    ? interpolate(localFrame, [0, durationFrames], [1.0, 1.08], {
+    ? interpolate(localFrame, [0, durationFrames], [1.0, 1.06], {
         extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
         easing: Easing.linear,
       })
@@ -156,9 +172,9 @@ const ClipSegment = ({ clip, startFrame, durationFrames, transition }) => {
         <Video
           src={clip.src}
           startFrom={Math.round((clip.trimStart || 0) * 30)}
-          endAt={Math.round((clip.trimStart || 0) * 30) + durationFrames}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           volume={0}
+          muted
         />
       </AbsoluteFill>
     </Sequence>
