@@ -279,7 +279,7 @@ async function generate() {
   const apiKey = document.getElementById('api-key').value.trim();
   const prompt = document.getElementById('prompt').value.trim();
 
-  const shotstackKey = document.getElementById('creatomate-key').value.trim();
+  const creatomateKey = document.getElementById('creatomate-key').value.trim();
   if (!apiKey) { showError('Enter your Groq API key.'); return; }
   if (!creatomateKey) { showError('Enter your Creatomate API key.'); return; }
   if (!prompt) { showError('Describe what the video should be about.'); return; }
